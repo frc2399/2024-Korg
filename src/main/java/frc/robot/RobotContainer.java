@@ -38,6 +38,7 @@ import java.util.Map;
 
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.Vision; 
 import frc.robot.subsystems.arm.ArmIO;
 import frc.robot.subsystems.arm.RealArm;
 import frc.robot.subsystems.intake.Intake;
@@ -46,6 +47,7 @@ import frc.robot.subsystems.intake.RealIntake;
 import frc.robot.subsystems.shooter.RealShooter;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
+
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -63,6 +65,7 @@ public class RobotContainer {
   public static Shooter m_shooter;
   public static Intake m_intake;
   public static Arm m_arm;
+  public static Vision m_Vision = new Vision();
  
 
   // The driver's controller
