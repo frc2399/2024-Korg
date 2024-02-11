@@ -76,8 +76,7 @@ public class AlignAprilTag extends Command {
   public boolean isFinished() {
     //abs value of our pose - desired pose < 10: ends
     double robotCurPose = driveSubsystem.getPose().getRotation().getDegrees();
-    if (robotCurPose - angleInDegrees < 5 && robotCurPose - angleInDegrees > -5) {
-      
+    if (Math.abs(robotCurPose - angleInDegrees) < 5) {  
       return true;
     } else {
     System.out.println(robotCurPose - angleInDegrees);
