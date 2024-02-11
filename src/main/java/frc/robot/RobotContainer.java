@@ -22,6 +22,7 @@ import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.AlignAprilTag;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -57,7 +58,8 @@ import frc.robot.subsystems.shooter.ShooterIO;
  */
 public class RobotContainer {
   // The robot's subsystems
-  private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  public static Vision m_Vision = new Vision();
+  private final DriveSubsystem m_robotDrive = new DriveSubsystem(m_Vision);
   private static Gyro m_gyro = new Gyro(); 
   public boolean fieldOrientedDrive = true;
   public static CommandSelector angleHeight = CommandSelector.INTAKE;
@@ -65,7 +67,6 @@ public class RobotContainer {
   public static Shooter m_shooter;
   public static Intake m_intake;
   public static Arm m_arm;
-  public static Vision m_Vision = new Vision();
  
 
   // The driver's controller
@@ -156,9 +157,15 @@ public class RobotContainer {
         .onTrue(new InstantCommand(
             () -> m_gyro.resetYaw(), m_gyro));  
     
-    new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
-        .whileTrue(new RunCommand(
-        () -> m_shooter.setMotor(0.1)));
+    // new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
+    //     .whileTrue(new RunCommand(
+    //     () -> m_shooter.setMotor(0.1)));
+
+    new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value).
+    onTrue(new InstantCommand( () -> System.out.println(Gyro.yaw)));
+
+    new JoystickButton(m_driverController, XboxController.Button.kRightBumper.value)
+        .onTrue(new AlignAprilTag(m_robotDrive, m_Vision, m_robotDrive.getPose()));   
     
     // Left trigger to intake
     new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1)

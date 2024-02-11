@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Gyro;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj.XboxController;
+import frc.robot.subsystems.Vision;
 
 
 
@@ -90,8 +91,10 @@ public class DriveSubsystem extends SubsystemBase {
   private double pitchRate;
 
   /** Creates a new DriveSubsystem. */
-  public DriveSubsystem() {
-    
+  public DriveSubsystem(Vision m_visionSubsystem) {
+    //vision
+    final Vision drive_vision;
+    drive_vision = m_visionSubsystem;
   }
 
   @Override
@@ -108,19 +111,24 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Gyro pitch", Gyro.pitch % 360);
     SmartDashboard.putNumber("Gyro roll", Gyro.roll % 360);
     pitchRate = derivativeCalculator.calculate(getGyroPitch());
+    updateOdometry();
+    
   }
+//returns estimated pose
+  
 
-  public void updateOdometry() 
-  {
-    m_poseEstimator.update(
-        Rotation2d.fromDegrees(m_gyro.getAngle()),
-        new SwerveModulePosition[] {
-          m_frontLeft.getPosition(),
-          m_frontRight.getPosition(),
-          m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
-        });
-  }
+//old update odometry
+  // public void updateOdometry() 
+  // {
+  //   m_poseEstimator.update(
+  //       Rotation2d.fromDegrees(Gyro.yaw),
+  //       new SwerveModulePosition[] {
+  //         m_frontLeft.getPosition(),
+  //         m_frontRight.getPosition(),
+  //         m_rearLeft.getPosition(),
+  //         m_rearRight.getPosition()
+  //       });
+  // }
 
   /**
    * Returns the currently-estimated pose of the robot.
@@ -132,12 +140,23 @@ public class DriveSubsystem extends SubsystemBase {
     return m_poseEstimator.getEstimatedPosition();
   }
 
+  public void updateOdometry () {
+    m_poseEstimator.update(Rotation2d.fromDegrees(Gyro.yaw),
+    new SwerveModulePosition[] {
+            m_frontLeft.getPosition(),
+            m_frontRight.getPosition(),
+            m_rearLeft.getPosition(),
+            m_rearRight.getPosition()
+        });
+  }
+
   /**
    * Resets the odometry to the specified pose.
    *
    * @param pose The pose to which to set the odometry.
    */
-  public void resetOdometry(Pose2d pose) {
+//makes sure odometry's (0,0) is the same as global (0,0) (according to PhotonVision)
+  public void alignOrigins(Pose2d pose) {
     m_odometry.resetPosition(
         Rotation2d.fromDegrees(Gyro.yaw),
         new SwerveModulePosition[] {

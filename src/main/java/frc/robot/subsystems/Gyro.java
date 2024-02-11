@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Gyro extends SubsystemBase {
   static final Pigeon2 gyro = new Pigeon2(50, "rio");
-  static double yaw;
+  public static double yaw;
   static double pitch;
   static double roll;
   static double yawAccel;
@@ -48,7 +48,7 @@ public class Gyro extends SubsystemBase {
     
   }
 
-  public double getYaw() {
+  public static double getYaw() {
     return yaw;
   }
 
