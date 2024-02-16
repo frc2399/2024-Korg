@@ -22,6 +22,7 @@ import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.commands.AimAtTargetCommand;
 import frc.robot.commands.AlignAprilTag;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -39,7 +40,6 @@ import java.util.Map;
 
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.Vision; 
 import frc.robot.subsystems.arm.ArmIO;
 import frc.robot.subsystems.arm.RealArm;
 import frc.robot.subsystems.intake.Intake;
@@ -64,9 +64,9 @@ public class RobotContainer {
   public boolean fieldOrientedDrive = true;
   public static CommandSelector angleHeight = CommandSelector.INTAKE;
 
-  public static Shooter m_shooter;
-  public static Intake m_intake;
-  public static Arm m_arm;
+  //public static Shooter m_shooter;
+  //public static Intake m_intake;
+  //public static Arm m_arm;
  
 
   // The driver's controller
@@ -88,34 +88,34 @@ public class RobotContainer {
     //m_robotDrive = new DriveSubsystem();
     m_gyro = new Gyro(); 
     //set up IOs
-    ShooterIO shooterIO;
+    //ShooterIO shooterIO;
     ArmIO armIO;
-    IntakeIO intakeIO;
+    //IntakeIO intakeIO;
    
     //IOs currently always real
-    intakeIO = new RealIntake();
+    //intakeIO = new RealIntake();
     armIO = new RealArm();
-    shooterIO = new RealShooter();
+    //shooterIO = new RealShooter();
 
     //initialize subsystems
-    m_intake = new Intake(intakeIO);  
-    m_arm = new Arm(armIO);
-    m_shooter = new Shooter(shooterIO);
+    //m_intake = new Intake(intakeIO);  
+    //m_arm = new Arm(armIO);
+    //m_shooter = new Shooter(shooterIO);
   }
 
   // Configure default commands
   private void configureDefaultCommands() {
     //default command for the shooter: setting speed to number input from the smart dashboard
-    m_shooter.setDefaultCommand(
-        new RunCommand(
-            () -> m_shooter.setSpeed(0),
-            m_shooter));
+    // m_shooter.setDefaultCommand(
+    //     new RunCommand(
+    //         () -> m_shooter.setSpeed(0),
+    //         m_shooter));
 
-    //default command for intake: do nothing
-    m_intake.setDefaultCommand(
-        new RunCommand(
-            () -> m_intake.setMotor(0),
-            m_intake));
+    // //default command for intake: do nothing
+    // m_intake.setDefaultCommand(
+    //     new RunCommand(
+    //         () -> m_intake.setMotor(0),
+    //         m_intake));
     
     //default command for drivetrain: drive based on controller inputs
     m_robotDrive.setDefaultCommand(
@@ -129,7 +129,7 @@ public class RobotContainer {
                 fieldOrientedDrive, false),
             m_robotDrive));
 
-    m_arm.setDefaultCommand(new RunCommand(() -> m_arm.setSpeedGravityCompensation(0), m_arm));
+    //m_arm.setDefaultCommand(new RunCommand(() -> m_arm.setSpeedGravityCompensation(0), m_arm));
   }
 
   /**
@@ -144,14 +144,14 @@ public class RobotContainer {
   private void configureButtonBindings() {
 
   
-    new JoystickButton(m_driverController, XboxController.Button.kX.value)
-        .whileTrue(new InstantCommand( () -> m_arm.setEncoderPosition()));
+    // new JoystickButton(m_driverController, XboxController.Button.kX.value)
+    //     .whileTrue(new InstantCommand( () -> m_arm.setEncoderPosition()));
     
-    new JoystickButton(m_driverController, XboxController.Button.kY.value)
-        .whileTrue(makeSetSpeedGravityCompensationCommand(m_arm, 0.1));
+    // new JoystickButton(m_driverController, XboxController.Button.kY.value)
+    //     .whileTrue(makeSetSpeedGravityCompensationCommand(m_arm, 0.1));
 
-    new JoystickButton(m_driverController, XboxController.Button.kA.value)
-        .whileTrue(makeSetSpeedGravityCompensationCommand(m_arm, -0.1));
+    // new JoystickButton(m_driverController, XboxController.Button.kA.value)
+    //     .whileTrue(makeSetSpeedGravityCompensationCommand(m_arm, -0.1));
 
     new JoystickButton(m_driverController, XboxController.Button.kB.value)
         .onTrue(new InstantCommand(
@@ -168,14 +168,16 @@ public class RobotContainer {
         .onTrue(new AlignAprilTag(m_robotDrive, m_Vision, m_robotDrive.getPose()));   
     
     // Left trigger to intake
-    new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1)
-        .whileTrue(new RunCommand(
-        () -> m_intake.setMotor(0.8)));
+    // new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1)
+    //     .whileTrue(new RunCommand(
+    //     () -> m_intake.setMotor(0.8)));
 
     //Right trigger to outtake
-    new Trigger(() -> m_driverController.getRawAxis(Axis.kRightTrigger.value) > 0.1)
-        .whileTrue(new RunCommand(
-        () -> m_intake.setMotor(-0.3)));
+    // new Trigger(() -> m_driverController.getRawAxis(Axis.kRightTrigger.value) > 0.1)
+    //     .whileTrue(new RunCommand(
+    //     () -> m_intake.setMotor(-0.3)));
+            new Trigger(() -> m_driverController.getRawAxis(Axis.kRightTrigger.value) > 0.1)
+        .whileTrue(new AimAtTargetCommand(m_robotDrive, m_Vision));
     
    
     

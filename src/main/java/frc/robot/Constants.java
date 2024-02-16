@@ -213,9 +213,9 @@ public final class Constants {
   public static final class VisionConstants {
     public static final AprilTagFieldLayout kFieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
     public static final Transform3d camToRobot = new Transform3d(
-        new Translation3d(Units.inchesToMeters(12.5), Units.inchesToMeters(0.0), Units.inchesToMeters(20.75)),
+        new Translation3d(Units.inchesToMeters(5), Units.inchesToMeters(5.25), Units.inchesToMeters(0)),
         new Rotation3d(0.0, 0.0, 0.0));
-    //these need to be changed when we have a robot and are here as placeholders
+    //these need to be changed on Comp Bot
     public static final double xOffsetToRobot = 0;
     public static final double yOffsetToRobot = 0;
     public static final double zOffsetToRobot = 0;

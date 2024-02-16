@@ -36,12 +36,11 @@ private boolean updatePoseWithVisionReadings = true;
   public void periodic() {
     // This method will be called once per scheduler run
     //SmartDashboard.putBoolean("Camera is connected", camera.isConnected());
-    SmartDashboard.putBoolean("Pose Updates Enabled?: ", updatePoseWithVisionReadings);
+    //SmartDashboard.putBoolean("Pose Updates Enabled?: ", updatePoseWithVisionReadings);
     var pose = CamEstimator.update();
-    //System.out.println("working!!!");
     if (!updatePoseWithVisionReadings) {
-      return;}
-    // var result = camera.getLatestResult();
+       return;}
+    var result = camera.getLatestResult();
     // if (result.hasTargets()) {
     //   var target = result.getBestTarget();
     //   SmartDashboard.putNumber("result", target.getYaw());
@@ -55,10 +54,7 @@ private boolean updatePoseWithVisionReadings = true;
 
   //estimates the robot pose
     public Optional<EstimatedRobotPose> getCameraEst() {
-      System.out.println(CamEstimator);
       var visionest = CamEstimator.update();
-      System.out.println("vision est:");
-      System.out.println(visionest);
       return visionest;
     }
 
