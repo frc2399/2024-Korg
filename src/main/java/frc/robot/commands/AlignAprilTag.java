@@ -63,7 +63,7 @@ public class AlignAprilTag extends Command {
       }
     } else {
       end(true);
-    }
+    } 
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -81,6 +81,7 @@ public class AlignAprilTag extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    System.out.println("Entered end");
   }
 
   // Returns true when the command should end.

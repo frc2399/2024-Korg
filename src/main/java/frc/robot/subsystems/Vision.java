@@ -37,10 +37,10 @@ private boolean updatePoseWithVisionReadings = true;
     // This method will be called once per scheduler run
     //SmartDashboard.putBoolean("Camera is connected", camera.isConnected());
     //SmartDashboard.putBoolean("Pose Updates Enabled?: ", updatePoseWithVisionReadings);
-    var pose = CamEstimator.update();
-    if (!updatePoseWithVisionReadings) {
-       return;}
-    var result = camera.getLatestResult();
+    //var pose = CamEstimator.update();
+    //if (!updatePoseWithVisionReadings) {
+      // return;}
+    //var result = camera.getLatestResult();
     // if (result.hasTargets()) {
     //   var target = result.getBestTarget();
     //   SmartDashboard.putNumber("result", target.getYaw());
