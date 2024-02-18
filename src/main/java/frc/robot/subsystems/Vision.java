@@ -16,9 +16,11 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.VisionConstants;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -34,12 +36,16 @@ private static PhotonPoseEstimator CamEstimator;
 private boolean updatePoseWithVisionReadings = true;
 public Pose2d robotPose;
 public Pose2d prevRobotPose;
+final double ANGULAR_P = 0.8; // TODO: tune
+final double ANGULAR_D = 0.0;
+PIDController keepPointedController = new PIDController(ANGULAR_P, 0, ANGULAR_D);
 
   /** Creates a new Vision. */
   public Vision() {
     camera = new PhotonCamera("Arducam_OV2311_USB_Camera");    
     CamEstimator = new PhotonPoseEstimator(VisionConstants.kFieldLayout, 
     PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera, VisionConstants.camToRobot);
+    kFieldLayout = VisionConstants.kFieldLayout; 
   }
 
   @Override
@@ -47,14 +53,17 @@ public Pose2d prevRobotPose;
     // This method will be called once per scheduler run
     //SmartDashboard.putBoolean("Camera is connected", camera.isConnected());
     //SmartDashboard.putBoolean("Pose Updates Enabled?: ", updatePoseWithVisionReadings);
-    Optional<EstimatedRobotPose> pose = CamEstimator.update();
+    Optional<EstimatedRobotPose> pose = getCameraEst();
+    //System.out.println(CamEstimator.update());
     //if (!updatePoseWithVisionReadings) {
       // return;}
+    if (pose.isPresent()) {
     var result = camera.getLatestResult();
      if (result.hasTargets()) {
+      //System.out.println(pose);
       PhotonTrackedTarget target = bestTarget();
       //the robot pose is estimating field to robot using photon utils
-      if (robotPose != null) {
+      if (robotPose != null) { // TODO: better way w/ less processing power - maybe smth in the init idk
         prevRobotPose = robotPose;
       }
       robotPose = PhotonUtils.estimateFieldToRobot(
@@ -63,6 +72,7 @@ public Pose2d prevRobotPose;
           pose.get().estimatedPose.getRotation().toRotation2d()),
          kFieldLayout.getTagPose(target.getFiducialId()).get().toPose2d(), VisionConstants.camToRobot2d);
      }
+    }
   }
 
   //gets latest result
@@ -73,6 +83,7 @@ public Pose2d prevRobotPose;
   //estimates the robot pose
     public Optional<EstimatedRobotPose> getCameraEst() {
       var visionest = CamEstimator.update();
+      //System.out.println(visionest);
       return visionest;
     }
 
@@ -101,34 +112,23 @@ public Pose2d prevRobotPose;
       return camera;
     }
 
-    public Double keepPointedAtSpeaker(int desiredSpeakerID) {
-      int speakerID = desiredSpeakerID;
-      Translation2d poseChange = new Translation2d(
-        robotPose.getX()-prevRobotPose.getX(),robotPose.getY()-prevRobotPose.getY());
-      double xDiff = poseChange.getX();
-      double yDiff = poseChange.getY();
-      double speakerY = VisionConstants.kFieldLayout.getTagPose(speakerID).get().getY();
-      if ((Math.abs(xDiff) == Math.abs(yDiff)) || (robotPose.getY() == speakerY)) {
-        return 0.0;
+    public Double keepPointedAtSpeaker() {
+      boolean seesSpeaker = false;
+      double yawDiff = 0.0;
+      for (PhotonTrackedTarget result : getCameraResult().getTargets()) {
+        if (result.getFiducialId() == RobotContainer.aprilTagAssignment.speakerID) {
+          seesSpeaker = true;
+          //yaw in radians bc p values get too big
+          yawDiff = ((result.getYaw()*Math.PI)/180);
+          SmartDashboard.putBoolean("Sees speaker: ", true);
+          break; //saves a tiny bit of processing power possibly
+        }
       }
-        //might not want this variable
-        //check if the *3 matters - x value appears to be more influential than y but want to check
-      Double changesSquared = (Math.pow(poseChange.getX(),2)*3 + Math.pow(poseChange.getY(),2)); //add scalar perhaps
-      Double directionToTurn = 0.0; // TODO: implement actual algorithm here!!!
-      return directionToTurn;
-      //don't turn IF: these should be taken care of
-        //1. delta x = delta y
-        //2. delta x = - delta y
-        //3. delta x = 0
-      //strafing on *either* side
-        //going right turn left
-        //going left turn right
-      //on right side: (either y-change)
-        //going left: turn right
-        //going right:turn left
-      //on left side (either y-change)
-        //going right: turn left
-        //going left: turn right
+      if (!seesSpeaker) {
+        SmartDashboard.putBoolean("Sees speaker: ", false);
+      }
+      return (keepPointedController.calculate(yawDiff, 0));
     }
-
 }
+
+//possible test idea to see if yawDiff is getting changed: put cap on and see if its still rotating

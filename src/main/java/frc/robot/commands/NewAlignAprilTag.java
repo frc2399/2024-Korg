@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Vision;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.VisionConstants;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -19,11 +20,11 @@ public class NewAlignAprilTag extends Command {
     Rotation2d yawDiff;
     private int desiredTagID;
   
-  public NewAlignAprilTag(DriveSubsystem m_driveSubsystem, Vision m_visionSubsystem, int speakerID) {
+  public NewAlignAprilTag(DriveSubsystem m_driveSubsystem, Vision m_visionSubsystem) {
     //makes the global variables the same as the ones intook from the call
     driveSubsystem = m_driveSubsystem;
     vision = m_visionSubsystem;
-    desiredTagID = speakerID;
+    desiredTagID = RobotContainer.aprilTagAssignment.speakerID;
     addRequirements(m_driveSubsystem, m_visionSubsystem);
   }
 

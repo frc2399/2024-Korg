@@ -29,6 +29,7 @@ import frc.robot.commands.NewAlignAprilTag;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
@@ -91,7 +92,7 @@ public class RobotContainer {
     setUpSubsystems();
     configureDefaultCommands();
     configureButtonBindings();
-    //assignAprilTags();
+    aprilTagAssignment.assignAprilTags();
   }
 
   //construct subsystems
@@ -113,8 +114,19 @@ public class RobotContainer {
     //m_arm = new Arm(armIO);
     //m_shooter = new Shooter(shooterIO);
   }
-  class aprilTagAssignment { {
-    if (VisionConstants.isBlueAlliance) {
+  //assigns AprilTags IDs to important locations BASED ON which alliance the team is on
+  public class aprilTagAssignment { 
+    public static int facingSourceLeftID;
+    public static int facingSourceRightID;
+    public static int speakerID;
+    public static int speakerOffsetID;
+    public static int stageBackID;
+    public static int facingAwayFromSpeakerStageLeftID;
+    public static int facingAwayFromSpeakerStageRightID;
+    public static int ampID;
+  
+    static void assignAprilTags() {
+      if (VisionConstants.isBlueAlliance) {
       facingSourceLeftID = 1;
       facingSourceRightID = 2;
       speakerID = 7;
@@ -122,6 +134,7 @@ public class RobotContainer {
       stageBackID = 14;
       facingAwayFromSpeakerStageLeftID = 15;
       facingAwayFromSpeakerStageRightID = 16;
+      ampID = 6;
     } else {
       facingSourceLeftID = 10;
       facingSourceRightID = 9;
@@ -130,27 +143,8 @@ public class RobotContainer {
       stageBackID = 13;
       facingAwayFromSpeakerStageLeftID = 11;
       facingAwayFromSpeakerStageRightID = 12;
+      ampID = 5;
     }}
-  }
-  //assigns AprilTags IDs to important locations BASED ON which alliance the team is on
-  private void assignAprilTags() {
-    // if (VisionConstants.isBlueAlliance) {
-    //   facingSourceLeftID = 1;
-    //   facingSourceRightID = 2;
-    //   speakerID = 7;
-    //   speakerOffsetID = 8;
-    //   stageBackID = 14;
-    //   facingAwayFromSpeakerStageLeftID = 15;
-    //   facingAwayFromSpeakerStageRightID = 16;
-    // } else {
-    //   facingSourceLeftID = 10;
-    //   facingSourceRightID = 9;
-    //   speakerID = 4;
-    //   speakerOffsetID = 3;
-    //   stageBackID = 13;
-    //   facingAwayFromSpeakerStageLeftID = 11;
-    //   facingAwayFromSpeakerStageRightID = 12;
-    // }
   }
 
   // Configure default commands
@@ -215,7 +209,7 @@ public class RobotContainer {
     onTrue(new InstantCommand( () -> System.out.println(Gyro.yaw)));
 
     new JoystickButton(m_driverController, XboxController.Button.kRightBumper.value)
-        .onTrue(new NewAlignAprilTag(m_robotDrive, m_Vision, speakerID));   
+        .onTrue(new NewAlignAprilTag(m_robotDrive, m_Vision));   
     
     // Left trigger to intake
     // new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1)
@@ -229,28 +223,41 @@ public class RobotContainer {
             new Trigger(() -> m_driverController.getRawAxis(Axis.kRightTrigger.value) > 0.1)
         .whileTrue(new AimAtTargetCommand(m_robotDrive, m_Vision));
 
+        // TODO: get driver preference for hold vs swap
         // TODO: better button for this
-        // TODO: test if this actually switches it - should it be RunCommand? 
-        //tried to model off of 2024 repo climber mode thing
-        //also not sure if rateLimit should be false - copy&paste from default commands
-        new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1).
-        and(() -> !pointAtSpeakerMode).
-        onTrue(new RunCommand( () -> m_robotDrive.drive(
+        // TODO: test if this actually switches it
+        // new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1).
+        // and(() -> !pointAtSpeakerMode).
+        // onTrue(new ParallelCommandGroup(new RunCommand( () -> m_robotDrive.drive(
+        //   -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
+        //   -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
+        //   m_Vision.keepPointedAtSpeaker(),
+        //   fieldOrientedDrive, false
+        // )), 
+        // new InstantCommand( () -> pointAtSpeakerMode = true),
+        // new InstantCommand( () -> System.out.println(pointAtSpeakerMode))));
+
+        // new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1).
+        // and(() -> pointAtSpeakerMode).
+        // onTrue(new ParallelCommandGroup(new RunCommand( () -> m_robotDrive.drive(
+        //   -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
+        //   -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
+        //   -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
+        //   fieldOrientedDrive, false
+        // )), 
+        // new InstantCommand( () -> pointAtSpeakerMode = false),
+        //  new InstantCommand( () -> System.out.println(pointAtSpeakerMode))));
+    new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1).
+        whileTrue(new RunCommand( () -> m_robotDrive.drive(
           -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
           -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
-          m_Vision.keepPointedAtSpeaker(speakerID),
-          fieldOrientedDrive, false
-        )));
-
-        new Trigger(() -> m_driverController.getRawAxis(Axis.kLeftTrigger.value) > 0.1).
-        and(() -> pointAtSpeakerMode).
-        onTrue(new RunCommand( () -> m_robotDrive.drive(
+          m_Vision.keepPointedAtSpeaker(),
+          fieldOrientedDrive, false), m_robotDrive)).
+        onFalse(new RunCommand(() -> m_robotDrive.drive(
           -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
           -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
           -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
-          fieldOrientedDrive, false
-        )));
-    
+          fieldOrientedDrive, false), m_robotDrive));
    
     
     // //Right stick up to move arm up
